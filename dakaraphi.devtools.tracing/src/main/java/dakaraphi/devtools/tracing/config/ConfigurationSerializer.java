@@ -11,14 +11,18 @@ import dakaraphi.devtools.tracing.ClassMethodSelector.ClassMethodDefinition;
 
 public class ConfigurationSerializer {
 	public static final String FILE_PROPERTY_KEY = "dakaraphi.devtools.tracing.config.file";
+	private final File configFile;
+	
+	public ConfigurationSerializer(File configFile) {
+		this.configFile = configFile;
+	}
 	
 	private TracingConfig readConfig() {
-		String filename = System.getProperty(FILE_PROPERTY_KEY);
 		TracingConfig config = null;
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			config = mapper.readValue(new File(filename), TracingConfig.class);
+			config = mapper.readValue(configFile, TracingConfig.class);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -36,5 +40,6 @@ public class ConfigurationSerializer {
 																		Integer.parseInt(tracerDefinition.line), 
 																		tracerDefinition.variables));
 		}
+		
 	}
 }

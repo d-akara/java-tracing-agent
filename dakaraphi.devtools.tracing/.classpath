@@ -16,5 +16,7 @@
 	<classpathentry kind="lib" path="runtime/jackson-core-2.8.1.jar"/>
 	<classpathentry kind="lib" path="runtime/jackson-annotations-2.8.0.jar"/>
 	<classpathentry kind="lib" path="runtime/jackson-databind-2.8.1.jar"/>
+	<classpathentry kind="lib" path="runtime/log4j-api-2.6.2.jar"/>
+	<classpathentry kind="lib" path="runtime/log4j-core-2.6.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
