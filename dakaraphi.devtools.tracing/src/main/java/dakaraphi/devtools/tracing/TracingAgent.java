@@ -1,10 +1,13 @@
 package dakaraphi.devtools.tracing;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 
 import dakaraphi.devtools.tracing.config.ConfigurationSerializer;
+import dakaraphi.devtools.tracing.filewatcher.FileWatcher;
+import dakaraphi.devtools.tracing.filewatcher.IFileListener;
 
 /**
  * TracingAgent can only be launched within a jar file.
@@ -23,12 +26,22 @@ import dakaraphi.devtools.tracing.config.ConfigurationSerializer;
  */
 public class TracingAgent {
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	System.out.println("Starting TracingAgent v0.2.5");
+    	System.out.println("Starting TracingAgent v0.2.6");
        	System.out.println("TracingAgent classloader: " + TracingAgent.class.getClassLoader());
     	ClassMethodSelector selector = new ClassMethodSelector();
-    	ConfigurationSerializer serializer = new ConfigurationSerializer();
+    	final File configFile = new File(System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY));
+    	ConfigurationSerializer serializer = new ConfigurationSerializer(configFile);
     	serializer.map(selector);
     	
-    	TracingTransformer transformer = new TracingTransformer(instrumentation, selector, new MethodRewriter());
+    	final TracingTransformer transformer = new TracingTransformer(instrumentation, selector, new MethodRewriter());
+    	
+    	FileWatcher.createFileWatcher().addListener(new IFileListener() {
+			public void onFileChange() {
+				ClassMethodSelector selector = new ClassMethodSelector();
+		    	ConfigurationSerializer serializer = new ConfigurationSerializer(configFile);
+		    	serializer.map(selector);
+				transformer.retransform();
+			}
+		}, configFile).start();
     }
 }

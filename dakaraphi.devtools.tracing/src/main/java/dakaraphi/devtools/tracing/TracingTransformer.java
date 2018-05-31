@@ -15,7 +15,7 @@ import javassist.LoaderClassPath;
 
 public class TracingTransformer implements ClassFileTransformer {
 	private static Instrumentation instrumentation;
-	private final ClassMethodSelector classMethodSelector;
+	private ClassMethodSelector classMethodSelector;
 	private final MethodRewriter methodRewriter;
 	public TracingTransformer(final Instrumentation instrumentation, ClassMethodSelector classMethodSelector, MethodRewriter methodRewriter) {
 		this.classMethodSelector = classMethodSelector;
@@ -68,11 +68,15 @@ public class TracingTransformer implements ClassFileTransformer {
     }
     
 
+    public void setClassMethodSelector(ClassMethodSelector classMethodSelector) {
+    	this.classMethodSelector = classMethodSelector;
+    }
 
-    public static void retransform(final String regex) {
+    public void retransform() {
     	final Class[] loadedClasses = instrumentation.getAllLoadedClasses();
     	for (final Class clazz : loadedClasses) {
-    		if (clazz.getName().matches(regex)) {
+            final String classNameDotted = clazz.getName().replaceAll("/", ".");
+            if (classMethodSelector.shouldTransformClass(classNameDotted)) {
     			try {
     				System.out.println("retransform " + clazz);
 					instrumentation.retransformClasses(clazz);
