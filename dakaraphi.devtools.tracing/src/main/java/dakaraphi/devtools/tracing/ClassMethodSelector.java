@@ -4,10 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import dakaraphi.devtools.tracing.config.Tracer;
+import dakaraphi.devtools.tracing.config.TracingConfig;
+
 public class ClassMethodSelector {
 	public static final int LINE_LAST = -1;
 	public static final int LINE_FIRST = 0;
 	private final List<ClassMethodDefinition> definitionList = new ArrayList<ClassMethodSelector.ClassMethodDefinition>();
+
+	public static ClassMethodSelector makeSelector(TracingConfig config) {
+		ClassMethodSelector classMethodSelector = new ClassMethodSelector();
+		for (Tracer tracerDefinition : config.tracers) {
+			classMethodSelector.addDefinition(new ClassMethodDefinition(tracerDefinition.classRegex, 
+																		tracerDefinition.methodRegex, 
+																		tracerDefinition.action, 
+																		Integer.parseInt(tracerDefinition.line), 
+																		tracerDefinition.variables));
+		}
+		return classMethodSelector;
+	}
+
 	public void addDefinition(ClassMethodDefinition classMethodDefinition) {
 		definitionList.add(classMethodDefinition);
 	}
