@@ -16,7 +16,7 @@ import javassist.LoaderClassPath;
 public class TracingTransformer implements ClassFileTransformer {
 	private static Instrumentation instrumentation;
 	private ClassMethodSelector classMethodSelector;
-	private final MethodRewriter methodRewriter;
+	private MethodRewriter methodRewriter;
 	public TracingTransformer(final Instrumentation instrumentation, ClassMethodSelector classMethodSelector, MethodRewriter methodRewriter) {
 		this.classMethodSelector = classMethodSelector;
 		this.methodRewriter = methodRewriter;
@@ -42,13 +42,15 @@ public class TracingTransformer implements ClassFileTransformer {
                 
                 final CtClass editableClass = classpool.get(classNameDotted);
                 final CtMethod declaredMethods[] = editableClass.getDeclaredMethods();
+                boolean modifiedMethods = false;
                 for (final CtMethod editableMethod : declaredMethods) {
                 	if (classMethodSelector.shouldTransform(classNameDotted, editableMethod.getName())) {
-                		methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
+                        methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
+                        modifiedMethods = true;
                 	}
                 }
-                
-                byteCode = editableClass.toBytecode();
+                if (modifiedMethods)
+                    byteCode = editableClass.toBytecode();
                 editableClass.detach();
                 
                 // These appear to only be needed during rewriting
@@ -57,7 +59,8 @@ public class TracingTransformer implements ClassFileTransformer {
                 classpool.removeClassPath(loaderClassPath);
                 classpool.removeClassPath(byteArrayClassPath);
                 
-                System.out.println("Transformed " + classNameDotted);
+                if (modifiedMethods)
+                    System.out.println("Transformed " + classNameDotted);
             } catch (Throwable ex) {
             	System.err.println("Unable to transform: " + classNameDotted);
                 ex.printStackTrace();
@@ -70,6 +73,10 @@ public class TracingTransformer implements ClassFileTransformer {
 
     public void setClassMethodSelector(ClassMethodSelector classMethodSelector) {
     	this.classMethodSelector = classMethodSelector;
+    }
+
+    public void setMethodRewriter(MethodRewriter methodRewriter) {
+    	this.methodRewriter = methodRewriter;
     }
 
     public void retransform() {

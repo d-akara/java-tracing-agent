@@ -3,6 +3,8 @@ package dakaraphi.devtools.tracing;
 import java.util.List;
 
 import dakaraphi.devtools.tracing.ClassMethodSelector.ClassMethodDefinition;
+import dakaraphi.devtools.tracing.config.TracingConfig;
+import dakaraphi.devtools.tracing.filter.LogFilter;
 import javassist.CannotCompileException;
 import javassist.CtMethod;
 
@@ -68,7 +70,8 @@ public class MethodRewriter {
 		builder.append("]: ");	
 		builder.append(text);
 		String output = builder.toString();
-		if ( !output.contains("AsynchronousTaskRunner"))
+
+		if (LogFilter.isIncluded(TracingAgent.tracingConfig.filters, output))
 			System.out.println(builder.toString());
 	}
 }

@@ -3,43 +3,31 @@ package dakaraphi.devtools.tracing.config;
 import java.io.File;
 import java.io.IOException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import dakaraphi.devtools.tracing.ClassMethodSelector;
-import dakaraphi.devtools.tracing.ClassMethodSelector.ClassMethodDefinition;
 
 public class ConfigurationSerializer {
 	public static final String FILE_PROPERTY_KEY = "dakaraphi.devtools.tracing.config.file";
 	private final File configFile;
-	
+	private TracingConfig tracingConfig;
+
 	public ConfigurationSerializer(File configFile) {
 		this.configFile = configFile;
 	}
 	
-	private TracingConfig readConfig() {
-		TracingConfig config = null;
+	public TracingConfig readConfig() {
 		try {
-			ObjectMapper mapper = new ObjectMapper();
+			JsonFactory jsonFactory = new JsonFactory();
+			jsonFactory.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+			ObjectMapper mapper = new ObjectMapper(jsonFactory);
 			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			config = mapper.readValue(configFile, TracingConfig.class);
+			tracingConfig = mapper.readValue(configFile, TracingConfig.class);
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return config;
-	}
-	
-	public void map(ClassMethodSelector classMethodSelector) {
-		TracingConfig config = readConfig();
-		for (Tracer tracerDefinition : config.tracers) {
-			classMethodSelector.addDefinition(new ClassMethodDefinition(tracerDefinition.classRegex, 
-																		tracerDefinition.methodRegex, 
-																		tracerDefinition.action, 
-																		Integer.parseInt(tracerDefinition.line), 
-																		tracerDefinition.variables));
-		}
-		
+		return tracingConfig;
 	}
 }
