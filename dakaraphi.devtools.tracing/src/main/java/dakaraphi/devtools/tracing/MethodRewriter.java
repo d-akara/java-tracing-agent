@@ -5,6 +5,7 @@ import java.util.List;
 import dakaraphi.devtools.tracing.ClassMethodSelector.ClassMethodDefinition;
 import dakaraphi.devtools.tracing.config.TracingConfig;
 import dakaraphi.devtools.tracing.filter.LogFilter;
+import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.CannotCompileException;
 import javassist.CtMethod;
 
@@ -14,7 +15,7 @@ public class MethodRewriter {
 		final String classname = editableMethod.getDeclaringClass().getName();
 		final String methodInvocation = this.getClass().getPackage().getName() +"."+ this.getClass().getSimpleName() + "."+classMethodDefinition.action;
 		final String javaStatement = methodInvocation + "(\""+classname+"\", \""+editableMethod.getName()+"\"" + constructVariablesString(classMethodDefinition.parameters) +");";
-		System.out.println("inserting statement: " + javaStatement);
+		TraceLogger.log("inserting statement: " + javaStatement);
 		performStatementInsertion(editableMethod, classMethodDefinition, javaStatement);
 	}
 	
@@ -72,6 +73,6 @@ public class MethodRewriter {
 		String output = builder.toString();
 
 		if (LogFilter.isIncluded(TracingAgent.tracingConfig.filters, output))
-			System.out.println(builder.toString());
+			TraceLogger.trace(builder.toString());
 	}
 }

@@ -9,6 +9,7 @@ import dakaraphi.devtools.tracing.config.ConfigurationSerializer;
 import dakaraphi.devtools.tracing.config.TracingConfig;
 import dakaraphi.devtools.tracing.filewatcher.FileWatcher;
 import dakaraphi.devtools.tracing.filewatcher.IFileListener;
+import dakaraphi.devtools.tracing.logger.TraceLogger;
 
 /**
  * TracingAgent can only be launched within a jar file.
@@ -28,8 +29,8 @@ import dakaraphi.devtools.tracing.filewatcher.IFileListener;
 public class TracingAgent {
 	public static TracingConfig tracingConfig = null;
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	System.out.println("Starting TracingAgent v0.3.0");
-       	System.out.println("TracingAgent classloader: " + TracingAgent.class.getClassLoader());
+    	TraceLogger.log("Starting v0.4.0");
+       	TraceLogger.log("classloader: " + TracingAgent.class.getClassLoader());
 		final File configFile = new File(System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY));
 		ClassMethodSelector selector = loadConfig(configFile);
     	

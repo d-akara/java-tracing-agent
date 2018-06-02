@@ -6,6 +6,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 
+import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.ByteArrayClassPath;
 import javassist.ClassPath;
 import javassist.ClassPool;
@@ -22,8 +23,8 @@ public class TracingTransformer implements ClassFileTransformer {
 		this.methodRewriter = methodRewriter;
 		instrumentation.addTransformer(this, true);
 		TracingTransformer.instrumentation = instrumentation;
-		System.out.println("TracingTransformer active");
-		System.out.println("TracingTransformer classloader: " + TracingAgent.class.getClassLoader());
+		TraceLogger.log("TracingTransformer active");
+		TraceLogger.log("TracingTransformer classloader: " + TracingAgent.class.getClassLoader());
 	}
 	
     public byte[] transform(final ClassLoader loader, final String className, final Class classBeingRedefined, final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -45,6 +46,7 @@ public class TracingTransformer implements ClassFileTransformer {
                 boolean modifiedMethods = false;
                 for (final CtMethod editableMethod : declaredMethods) {
                 	if (classMethodSelector.shouldTransform(classNameDotted, editableMethod.getName())) {
+                        // TODO should allow for multiple matching definitions being processed
                         methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
                         modifiedMethods = true;
                 	}
@@ -60,7 +62,7 @@ public class TracingTransformer implements ClassFileTransformer {
                 classpool.removeClassPath(byteArrayClassPath);
                 
                 if (modifiedMethods)
-                    System.out.println("Transformed " + classNameDotted);
+                    TraceLogger.log("Transformed " + classNameDotted);
             } catch (Throwable ex) {
             	System.err.println("Unable to transform: " + classNameDotted);
                 ex.printStackTrace();
@@ -85,7 +87,7 @@ public class TracingTransformer implements ClassFileTransformer {
             final String classNameDotted = clazz.getName().replaceAll("/", ".");
             if (classMethodSelector.shouldTransformClass(classNameDotted)) {
     			try {
-    				System.out.println("retransform " + clazz);
+    				TraceLogger.log("retransform " + clazz);
 					instrumentation.retransformClasses(clazz);
 
 				} catch (UnmodifiableClassException e) {

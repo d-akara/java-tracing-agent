@@ -15,11 +15,12 @@ public class ClassMethodSelector {
 	public static ClassMethodSelector makeSelector(TracingConfig config) {
 		ClassMethodSelector classMethodSelector = new ClassMethodSelector();
 		for (Tracer tracerDefinition : config.tracers) {
-			classMethodSelector.addDefinition(new ClassMethodDefinition(tracerDefinition.classRegex, 
-																		tracerDefinition.methodRegex, 
-																		tracerDefinition.action, 
-																		Integer.parseInt(tracerDefinition.line), 
-																		tracerDefinition.variables));
+			if (tracerDefinition.enabled)
+				classMethodSelector.addDefinition(new ClassMethodDefinition(tracerDefinition.classRegex, 
+																			tracerDefinition.methodRegex, 
+																			tracerDefinition.action, 
+																			Integer.parseInt(tracerDefinition.line), 
+																			tracerDefinition.variables));
 		}
 		return classMethodSelector;
 	}
