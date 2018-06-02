@@ -3,6 +3,7 @@ package dakaraphi.devtools.tracing.config;
 import java.util.List;
 
 public class Tracer {
+	public boolean enabled = true;
 	public String classRegex;
 	public String methodRegex;
 	public String line;

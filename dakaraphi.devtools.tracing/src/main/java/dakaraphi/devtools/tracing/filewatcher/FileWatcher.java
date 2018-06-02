@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import dakaraphi.devtools.tracing.logger.TraceLogger;
+
 public class FileWatcher {
 	private final List<FileTrackingInfo> fileListeners = new ArrayList<>();
 	private final FileWatchDaemon fileWatchDaemon;
@@ -30,7 +32,7 @@ public class FileWatcher {
 	}
 	
 	public FileWatcher addListener(IFileListener listener, File file) throws IOException {
-		System.out.println("FileWatcher watching: " + file);
+		TraceLogger.log("FileWatcher watching: " + file);
 		fileListeners.add(new FileTrackingInfo(listener, file));
 		return this;
 	}
@@ -61,13 +63,17 @@ public class FileWatcher {
 		}
 		
 		public void run() {
-			System.out.println("FileWatchDaemon started");
+			TraceLogger.log("FileWatchDaemon started");
             while (!stop) {
                 try {
                 	Thread.sleep(interval);
                 	for (FileTrackingInfo listenerAndPath : listeners) {
                 		if (listenerAndPath.isFileModifiedSinceLastCheck()) {
-                			listenerAndPath.fileListener.onFileChange();
+							try {
+								listenerAndPath.fileListener.onFileChange();
+							} catch (Throwable e) {
+								e.printStackTrace();
+							}
                 		}
                 	}
                     
@@ -75,7 +81,7 @@ public class FileWatcher {
                     return;
                 }
             }
-            System.out.println("FileWatchDaemon ended");
+            TraceLogger.log("FileWatchDaemon ended");
 		}
 		
 		public void stop() {
