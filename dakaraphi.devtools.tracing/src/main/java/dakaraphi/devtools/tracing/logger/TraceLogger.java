@@ -6,6 +6,6 @@ public class TraceLogger {
     }
 
     public static void trace(String content) {
-        System.out.println("trace agent out: " + content);
+        System.out.println("Tracer: " + content);
     }
 }
