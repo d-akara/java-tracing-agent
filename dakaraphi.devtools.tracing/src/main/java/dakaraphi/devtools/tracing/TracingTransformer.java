@@ -30,6 +30,7 @@ public class TracingTransformer implements ClassFileTransformer {
     public byte[] transform(final ClassLoader loader, final String className, final Class classBeingRedefined, final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
         byte[] byteCode = classfileBuffer;
         final String classNameDotted = className.replaceAll("/", ".");
+
         if (classMethodSelector.shouldTransformClass(classNameDotted)) {
  
             try {
@@ -45,7 +46,7 @@ public class TracingTransformer implements ClassFileTransformer {
                 final CtMethod declaredMethods[] = editableClass.getDeclaredMethods();
                 boolean modifiedMethods = false;
                 for (final CtMethod editableMethod : declaredMethods) {
-                	if (classMethodSelector.shouldTransform(classNameDotted, editableMethod.getName())) {
+                	if (classMethodSelector.shouldTransformMethod(classNameDotted, editableMethod.getName())) {
                         // TODO should allow for multiple matching definitions being processed
                         methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
                         modifiedMethods = true;
