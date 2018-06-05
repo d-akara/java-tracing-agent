@@ -1,6 +1,8 @@
 # Java Tracing Agent
 A lightweight and fast runtime injection tool for logging and tracing that can also trace OSGi applications.
 
+Inject logging anywhere into your running application.
+
 ## Setup
 - add VM Argument with path to the tracing jar `-javaagent:dakaraphi.devtools.tracing-all.jar`
 - add sytem property for path to tracing config `-Ddakaraphi.devtools.tracing.config.file=tracer.json`
@@ -43,7 +45,7 @@ Variable expressions than can be used in the `variables` section
 - `localVariable` Local variables can be used simply by name
 
 Tracer definition
-```
+```javascript
 {
     "tracers": [
         {
@@ -68,7 +70,7 @@ Tracer definition
  ```
 
 A simple tracer definition JSON
-```
+```javascript
 {
     "tracers": [   
         {
@@ -79,3 +81,8 @@ A simple tracer definition JSON
     ]
 }
 ```
+
+## Supporting libraries
+These are libraries that make Java Tracing Agent possible
+- [Javassist](https://github.com/jboss-javassist/javassist) used to assist rewrite of the bytecodes for classes
+- [Jackson](https://github.com/FasterXML/jackson) used to load the JSON configuration
