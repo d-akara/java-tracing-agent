@@ -48,6 +48,7 @@ public class TracingTransformer implements ClassFileTransformer {
                 for (final CtMethod editableMethod : declaredMethods) {
                 	if (classMethodSelector.shouldTransformMethod(classNameDotted, editableMethod.getName())) {
                         // TODO should allow for multiple matching definitions being processed
+                        // TODO we might be broken handling primitives.  Need to handle or filter out for now
                         methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
                         modifiedMethods = true;
                 	}

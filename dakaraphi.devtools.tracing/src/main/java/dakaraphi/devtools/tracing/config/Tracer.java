@@ -17,7 +17,7 @@ public class Tracer {
 	public Integer line;
 	public List<String> variables;
 	public LogWhen logWhen;
-	public boolean includeStackTrace;
+	public LogStackFrames logStackFrames;
 
 	public static class LogWhen {
 		public List<VariableCondition> variableValues = new ArrayList<>();
@@ -28,5 +28,11 @@ public class Tracer {
 	public static class VariableCondition {
 		public int index;
 		public Pattern valueRegex;
+	}
+
+	public static class LogStackFrames {
+		public int limit;
+		public Pattern includeRegex;
+		public Pattern excludeRegex;
 	}
 }
