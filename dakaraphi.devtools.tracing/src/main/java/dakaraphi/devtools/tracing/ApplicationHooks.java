@@ -41,10 +41,13 @@ public class ApplicationHooks {
 		String time = new java.text.SimpleDateFormat("hh:mm:ss,SSS").format(new java.util.Date());
 		builder.append(time);
 		if (tracerConfig.name != null) builder.append(" [" +tracerConfig.name+ "]");
-		builder.append(" thread:[");
-		if (logConfig.threadId) builder.append(Thread.currentThread().getId());
-		if (logConfig.threadName) builder.append(Thread.currentThread().getName());
-		builder.append("]: ");	
+		if (logConfig.threadId || logConfig.threadName) {
+			builder.append(" thread:[");
+			if (logConfig.threadId)   builder.append(Thread.currentThread().getId());
+			if (logConfig.threadName) builder.append(Thread.currentThread().getName());
+			builder.append("]:");
+		}
+		builder.append(' ');	
 		builder.append(text);
 
 		if (tracerConfig.logStackFrames != null) appendStackFrames(tracerConfig.logStackFrames, builder);
