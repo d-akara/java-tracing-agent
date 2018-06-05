@@ -4,7 +4,6 @@ import java.util.List;
 
 public class TracingConfig {
 	public List<Tracer> tracers;
-	public List<Filter> filters;
 	public LogConfig logConfig = new LogConfig();
 
 	public static class LogConfig {

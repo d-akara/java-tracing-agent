@@ -1,6 +1,7 @@
 package dakaraphi.devtools.tracing;
 
 import dakaraphi.devtools.tracing.config.Tracer;
+import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
 import dakaraphi.devtools.tracing.config.Tracer.VariableCondition;
 import dakaraphi.devtools.tracing.config.TracingConfig.LogConfig;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
@@ -46,15 +47,24 @@ public class ApplicationHooks {
 		builder.append("]: ");	
 		builder.append(text);
 
-		if (tracerConfig.includeStackTrace) appendStackFrames(builder);
+		if (tracerConfig.logStackFrames != null) appendStackFrames(tracerConfig.logStackFrames, builder);
 
 		TraceLogger.trace(builder.toString());
 	}
 
-	private static void appendStackFrames(StringBuilder content) {
-		StackTraceElement[] stackFrames = Thread.currentThread().getStackTrace();
+	private static void appendStackFrames(LogStackFrames logStackFramesConfig, StringBuilder content) {
+		StackTraceElement[] stackFrames = new Throwable().getStackTrace();
+		int stackDepth = 0;
+		int framesLogged = 0;
 		for (StackTraceElement stackFrame : stackFrames) {
-			content.append(" " + formatStackFrame(stackFrame));
+			stackDepth++;
+			String stackFrameDescription = formatStackFrame(stackFrame);
+			if (stackFrameDescription.contains("dakaraphi.devtools.tracing")) continue; // skip our own tracing frames
+			if (logStackFramesConfig.includeRegex != null && !logStackFramesConfig.includeRegex.matcher(stackFrameDescription).matches()) continue;
+			if (logStackFramesConfig.excludeRegex != null &&  logStackFramesConfig.excludeRegex.matcher(stackFrameDescription).matches()) continue;
+			if (logStackFramesConfig.limit > 0 && framesLogged >= logStackFramesConfig.limit) break;
+			framesLogged++;
+			content.append(" stack frame["+ stackDepth + "] " + stackFrameDescription);
 			content.append('\n');
 		}
 	}
