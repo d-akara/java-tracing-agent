@@ -86,3 +86,6 @@ A simple tracer definition JSON
 These are libraries that make Java Tracing Agent possible
 - [Javassist](https://github.com/jboss-javassist/javassist) used to assist rewrite of the bytecodes for classes
 - [Jackson](https://github.com/FasterXML/jackson) used to load the JSON configuration
+
+## Build
+`gradlew shadowJar` will create jar file `dakaraphi.devtools.tracing/build/libs/dakaraphi.devtools.tracing-all.jar`
