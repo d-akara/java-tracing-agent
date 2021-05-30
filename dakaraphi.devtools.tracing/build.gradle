@@ -90,13 +90,14 @@ task runWithExecJarExecutable(type: Exec) {
     commandLine "java", "-javaagent", jar.archiveFile.get()
 }
 
-task runWithJavaExec(type: JavaExec) {
+task testApplication(type: JavaExec) {
+    dependsOn shadowJar 
     group = "Execution"
     description = "Run the main class with JavaExecTask"
     classpath = sourceSets.test.runtimeClasspath
-    //jvmArgs = ["-javaagent:build\\libs\\dakaraphi.devtools.tracing-all.jar"]
-    main = "dakaraphi.devtools.tracing.TestApplication"
-    systemProperty "dakaraphi.devtools.tracing.config.file", "build\\resources\\tracer.json"
+    jvmArgs = ["-javaagent:build\\libs\\dakaraphi.devtools.tracing-all.jar"]
+    main = "dakaraphi.devtools.TestApplication"
+    systemProperty "dakaraphi.devtools.tracing.config.file", "src\\test\\java\\dakaraphi\\devtools\\tracing\\config\\tracer.json"
 }
 
 task getDeps(type: Copy) {

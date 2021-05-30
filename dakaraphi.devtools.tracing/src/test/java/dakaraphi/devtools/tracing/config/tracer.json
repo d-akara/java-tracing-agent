@@ -3,9 +3,10 @@
         {
             "enabled": "true",    // optional. default 'true'. 
             "name": "tracerName",  // optional. name will be logged in output
-            "classRegex": " dakaraphi.devtools.tracing.TestApplication", "methodRegex": "main", "line": "0",  // specify the location for the log injection
+            "classRegex": " dakaraphi.devtools.TestApplication", "methodRegex": "method2", "line": "0",  // specify the location for the log injection
             "logStackFrames": { // optional. log class, method and line number from elements of the stack trace
-                "limit": 10 // optional. log max number of frames
+                "limit": 10, // optional. log max number of frames
+                "referenceDuplicatesByHash": true
             }
         }
     ]

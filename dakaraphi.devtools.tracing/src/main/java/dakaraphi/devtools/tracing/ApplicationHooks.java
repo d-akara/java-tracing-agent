@@ -62,9 +62,9 @@ public class ApplicationHooks {
 		if (logStackFramesConfig.referenceDuplicatesByHash) {
 			StacktraceHash stackHash = StacktraceHasher.getExistingStackFrameHashChain(stackFrames);
 			if (stackHash.firstOccurrence) {
-				content.append(" stack reference["+ stackHash.hashValue + "]\n");
+				content.append("\n stack frames hash["+ stackHash.hashValue + "]\n");
 			} else {
-				content.append(" stack hash["+ stackHash.hashValue + "]\n");
+				content.append("\n stack frames reference["+ stackHash.hashValue + "] ...\n");
 				return;
 			}
 		}
