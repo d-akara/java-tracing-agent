@@ -44,6 +44,20 @@ dependencies {
 
 }
 
+// Adds the tracer.json file to the build output for the test class
+sourceSets {
+    other {
+        resources {
+            srcDirs "src/test/java"
+            includes = ["**/*.json"]
+        }
+    }
+    test {
+        resources {
+            source other.resources
+        }
+    }
+}
 
 jar {
   manifest {
