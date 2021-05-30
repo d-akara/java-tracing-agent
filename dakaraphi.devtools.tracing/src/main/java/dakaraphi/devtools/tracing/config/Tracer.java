@@ -26,7 +26,7 @@ public class Tracer {
 	}
 
 	public static class VariableCondition {
-		public int index;
+		public String name;
 		public Pattern valueRegex;
 	}
 
@@ -34,5 +34,6 @@ public class Tracer {
 		public int limit;
 		public Pattern includeRegex;
 		public Pattern excludeRegex;
+		public boolean referenceDuplicatesByHash;
 	}
 }

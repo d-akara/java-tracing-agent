@@ -3,19 +3,9 @@
         {
             "enabled": "true",    // optional. default 'true'. 
             "name": "tracerName",  // optional. name will be logged in output
-            "classRegex": ".*classname", "methodRegex": "methodname", "line": "0",  // specify the location for the log injection
-            "variables": ["$1, $2, localVarName"],  // optional. specify variables to include in the output
-            "logWhen": { // optional. specify conditions for when to log
-                "stackFramesRegex": "package.*classname",  // optional. log when any stack frame class and method matches
-                "variableValues": [
-                    {"index": 0, "valueRegex": ".*value.*"}  // optional. log when a logging variable matches this value
-                ],                
-                "threadNameRegex": ".*threadname.*"  // optional. log when thread name matches
-            },
+            "classRegex": " dakaraphi.devtools.tracing.TestApplication", "methodRegex": "main", "line": "0",  // specify the location for the log injection
             "logStackFrames": { // optional. log class, method and line number from elements of the stack trace
-                "limit": 10, // optional. log max number of frames
-                "includeRegex": "package.*",  // optional. log only frames matching
-                "referenceDuplicatesByHash": "true" // optional. Log full stack frames on first occurrence and only the hash value on subsequent when same full stack.
+                "limit": 10 // optional. log max number of frames
             }
         }
     ]

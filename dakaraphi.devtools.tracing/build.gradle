@@ -33,8 +33,8 @@ dependencies {
     // The production code uses the SLF4J logging API at compile time
     //compile 'org.slf4j:slf4j-api:1.7.21'  // not sure why this was needed previously
     implementation 'org.javassist:javassist:3.18.2-GA'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
 
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
@@ -80,6 +80,23 @@ shadowJar {
     relocate('com.fasterxml', 'dakaraphi.vendor.com.fasterxml')
     relocate('org.slf4j',     'dakaraphi.vendor.org.slf4j')
     relocate('javassist',     'dakaraphi.vendor.javassist')
+}
+
+// -javaagent: dakaraphi.devtools.tracing.jar
+task runWithExecJarExecutable(type: Exec) {
+    dependsOn jar
+    group = "Execution"
+    description = "Run the output executable jar with ExecTask"
+    commandLine "java", "-javaagent", jar.archiveFile.get()
+}
+
+task runWithJavaExec(type: JavaExec) {
+    group = "Execution"
+    description = "Run the main class with JavaExecTask"
+    classpath = sourceSets.test.runtimeClasspath
+    //jvmArgs = ["-javaagent:build\\libs\\dakaraphi.devtools.tracing-all.jar"]
+    main = "dakaraphi.devtools.tracing.TestApplication"
+    systemProperty "dakaraphi.devtools.tracing.config.file", "build\\resources\\tracer.json"
 }
 
 task getDeps(type: Copy) {

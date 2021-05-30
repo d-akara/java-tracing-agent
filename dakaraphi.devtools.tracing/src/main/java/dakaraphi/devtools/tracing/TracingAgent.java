@@ -29,9 +29,15 @@ import dakaraphi.devtools.tracing.logger.TraceLogger;
 public class TracingAgent {
 	public static TracingConfig tracingConfig = null;
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	TraceLogger.log("Starting v0.6.0");
+    	TraceLogger.log("Starting v1.0.0");
        	TraceLogger.log("classloader: " + TracingAgent.class.getClassLoader());
+		String tracerDefinitionFile = System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY);
+		if (tracerDefinitionFile == null) {
+			TraceLogger.log("Missing system property " + ConfigurationSerializer.FILE_PROPERTY_KEY);
+			return;
+		}
 		final File configFile = new File(System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY));
+		TraceLogger.log("using tracer definitions: " + configFile);
 		ClassMethodSelector selector = loadConfig(configFile);
     	
     	final TracingTransformer transformer = new TracingTransformer(instrumentation, selector, new MethodRewriter());
@@ -41,6 +47,7 @@ public class TracingAgent {
 				ClassMethodSelector selector = loadConfig(configFile);
 				transformer.setClassMethodSelector(selector);
 				transformer.retransform();
+				StacktraceHasher.clear();
 			}
 		}, configFile).start();
 	}
@@ -51,3 +58,5 @@ public class TracingAgent {
 		return ClassMethodSelector.makeSelector(tracingConfig);
 	}
 }
+
+// TODO - consider exposing a live interface using - https://github.com/perwendel/spark

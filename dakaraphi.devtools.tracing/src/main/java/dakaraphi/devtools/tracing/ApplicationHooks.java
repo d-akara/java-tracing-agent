@@ -1,5 +1,6 @@
 package dakaraphi.devtools.tracing;
 
+import dakaraphi.devtools.tracing.StacktraceHasher.StacktraceHash;
 import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
 import dakaraphi.devtools.tracing.config.Tracer.VariableCondition;
@@ -57,6 +58,17 @@ public class ApplicationHooks {
 
 	private static void appendStackFrames(LogStackFrames logStackFramesConfig, StringBuilder content) {
 		StackTraceElement[] stackFrames = new Throwable().getStackTrace();
+
+		if (logStackFramesConfig.referenceDuplicatesByHash) {
+			StacktraceHash stackHash = StacktraceHasher.getExistingStackFrameHashChain(stackFrames);
+			if (stackHash.firstOccurrence) {
+				content.append(" stack reference["+ stackHash.hashValue + "]\n");
+			} else {
+				content.append(" stack hash["+ stackHash.hashValue + "]\n");
+				return;
+			}
+		}
+
 		int stackDepth = 0;
 		int framesLogged = 0;
 		for (StackTraceElement stackFrame : stackFrames) {
@@ -82,9 +94,12 @@ public class ApplicationHooks {
 
 			// check variable conditions
 			for (VariableCondition variable : tracerConfig.logWhen.variableValues) {
-				Object parameterValue = parameters[variable.index];
-				if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).matches()) {
-					return false;
+				int variableIndex = tracerConfig.variables.indexOf(variable.name);
+				if (variableIndex != -1) {
+					Object parameterValue = parameters[variableIndex];
+					if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).matches()) {
+						return false;
+					}
 				}
 			}
 
