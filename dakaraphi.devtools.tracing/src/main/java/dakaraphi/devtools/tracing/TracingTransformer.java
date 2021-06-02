@@ -71,8 +71,8 @@ public class TracingTransformer implements ClassFileTransformer {
                 } else {
                     // If this class was previously transformed we can now remove it
                     // from our list as it is not transformed using the current rules
-                    TraceLogger.log("restored class - " + classNameDotted);
-                    redefinedClasses.remove(classBeingRedefined);
+                    if (redefinedClasses.remove(classBeingRedefined))
+                        TraceLogger.log("restored class - " + classNameDotted);
                 }
             } catch (Throwable ex) {
             	System.err.println("Unable to transform: " + classNameDotted);

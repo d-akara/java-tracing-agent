@@ -6,8 +6,10 @@ import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
 import dakaraphi.devtools.tracing.config.Tracer.VariableCondition;
 import dakaraphi.devtools.tracing.config.TracingConfig.LogConfig;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
+import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 
 public class ApplicationHooks {
+
 	// http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before
     public static void logMethodParameters(final int tracerId, final String classname, final String methodname, final Object[] parameters) {
 		Tracer tracerConfig = TracingAgent.tracingConfig.tracers.get(tracerId);
@@ -42,6 +44,13 @@ public class ApplicationHooks {
 		String time = new java.text.SimpleDateFormat("hh:mm:ss,SSS").format(new java.util.Date());
 		builder.append(time);
 		if (tracerConfig.name != null) builder.append(" [" +tracerConfig.name+ "]");
+
+		if (logConfig.executionCount) {
+			builder.append(" count[");
+			builder.append(ExecutionCounts.incrementExecutionCount(tracerConfig.id));
+			builder.append("]:");
+		}
+
 		if (logConfig.threadId || logConfig.threadName) {
 			builder.append(" thread:[");
 			if (logConfig.threadId)   builder.append(Thread.currentThread().getId());

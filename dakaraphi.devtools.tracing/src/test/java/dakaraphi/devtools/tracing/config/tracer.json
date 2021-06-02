@@ -9,5 +9,8 @@
                 "referenceDuplicatesByHash": true
             }
         }
-    ]
+    ],
+    "logConfig": {
+        "executionCount": true
+    }
 }
