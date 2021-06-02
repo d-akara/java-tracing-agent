@@ -30,8 +30,6 @@ targetCompatibility = 1.8
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    // The production code uses the SLF4J logging API at compile time
-    //compile 'org.slf4j:slf4j-api:1.7.21'  // not sure why this was needed previously
     implementation 'org.javassist:javassist:3.18.2-GA'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
@@ -82,14 +80,9 @@ shadowJar {
     relocate('javassist',     'dakaraphi.vendor.javassist')
 }
 
-// -javaagent: dakaraphi.devtools.tracing.jar
-task runWithExecJarExecutable(type: Exec) {
-    dependsOn jar
-    group = "Execution"
-    description = "Run the output executable jar with ExecTask"
-    commandLine "java", "-javaagent", jar.archiveFile.get()
-}
 
+// task to run a test application with our tracing agent
+// TODO - replace hard coded values with platform independent values.
 task testApplication(type: JavaExec) {
     dependsOn shadowJar 
     group = "Execution"

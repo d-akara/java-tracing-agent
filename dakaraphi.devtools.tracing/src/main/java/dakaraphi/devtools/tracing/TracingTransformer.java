@@ -5,6 +5,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
+import java.util.HashSet;
+import java.util.Set;
 
 import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.ByteArrayClassPath;
@@ -16,6 +18,7 @@ import javassist.LoaderClassPath;
 
 public class TracingTransformer implements ClassFileTransformer {
 	private static Instrumentation instrumentation;
+    private static Set<Class> redefinedClasses = new HashSet<>();
 	private ClassMethodSelector classMethodSelector;
 	private MethodRewriter methodRewriter;
 	public TracingTransformer(final Instrumentation instrumentation, ClassMethodSelector classMethodSelector, MethodRewriter methodRewriter) {
@@ -24,7 +27,6 @@ public class TracingTransformer implements ClassFileTransformer {
 		instrumentation.addTransformer(this, true);
 		TracingTransformer.instrumentation = instrumentation;
 		TraceLogger.log("TracingTransformer active");
-		TraceLogger.log("TracingTransformer classloader: " + TracingAgent.class.getClassLoader());
 	}
 	
     public byte[] transform(final ClassLoader loader, final String className, final Class classBeingRedefined, final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -63,8 +65,15 @@ public class TracingTransformer implements ClassFileTransformer {
                 classpool.removeClassPath(loaderClassPath);
                 classpool.removeClassPath(byteArrayClassPath);
                 
-                if (modifiedMethods)
-                    TraceLogger.log("Transformed " + classNameDotted);
+                if (modifiedMethods) {
+                    redefinedClasses.add(classBeingRedefined);
+                    TraceLogger.log("modified class - " + classNameDotted);
+                } else {
+                    // If this class was previously transformed we can now remove it
+                    // from our list as it is not transformed using the current rules
+                    TraceLogger.log("restored class - " + classNameDotted);
+                    redefinedClasses.remove(classBeingRedefined);
+                }
             } catch (Throwable ex) {
             	System.err.println("Unable to transform: " + classNameDotted);
                 ex.printStackTrace();
@@ -84,19 +93,33 @@ public class TracingTransformer implements ClassFileTransformer {
     }
 
     public void retransform() {
+        // first retransform any previous loaded classes.  
+        // this is to ensure if rules in the tracer.json have changed that we can restore
+        // classes that may have been removed from the tracer.json or rules don't apply anymore
+        for (final Class clazz : redefinedClasses) {
+            attemptTransform(clazz);
+        }
+
     	final Class[] loadedClasses = instrumentation.getAllLoadedClasses();
     	for (final Class clazz : loadedClasses) {
-            final String classNameDotted = clazz.getName().replaceAll("/", ".");
-            if (classMethodSelector.shouldTransformClass(classNameDotted)) {
-    			try {
-    				TraceLogger.log("retransform " + clazz);
-					instrumentation.retransformClasses(clazz);
-
-				} catch (UnmodifiableClassException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    		}
+            if (!redefinedClasses.contains(clazz)) {
+                // we have not processed this class yet
+                attemptTransform(clazz);
+            }
     	}
+    }
+
+    private void attemptTransform(final Class clazz) {
+        final String classNameDotted = clazz.getName().replaceAll("/", ".");
+        if (classMethodSelector.shouldTransformClass(classNameDotted)) {
+        	try {
+        		TraceLogger.log("re-evaluating rule definitions for class - " + clazz);
+        		instrumentation.retransformClasses(clazz);
+
+        	} catch (UnmodifiableClassException e) {
+        		// TODO Auto-generated catch block
+        		e.printStackTrace();
+        	}
+        }
     }
 }
