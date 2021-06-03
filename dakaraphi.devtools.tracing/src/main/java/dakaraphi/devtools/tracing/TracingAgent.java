@@ -30,7 +30,7 @@ import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 public class TracingAgent {
 	public static TracingConfig tracingConfig = null;
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	TraceLogger.log("Starting v1.0.2");
+    	TraceLogger.log("Starting v1.0.4");
 		String tracerDefinitionFile = System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY);
 		if (tracerDefinitionFile == null) {
 			TraceLogger.log("Missing system property " + ConfigurationSerializer.FILE_PROPERTY_KEY);
@@ -60,4 +60,13 @@ public class TracingAgent {
 	}
 }
 
-// TODO - consider exposing a live interface using - https://github.com/perwendel/spark
+/*
+ TODO 
+ - consider exposing a live interface using - https://github.com/perwendel/spark
+ - add support for triggers
+ - add support for constructors
+ - prevent infinite recursion if someone attempts to trace a JDK class that the tracer itself uses
+ - ensure startup and stability with bad tracer config JSON
+ - allow tracers to override the global logConfig
+*/
+

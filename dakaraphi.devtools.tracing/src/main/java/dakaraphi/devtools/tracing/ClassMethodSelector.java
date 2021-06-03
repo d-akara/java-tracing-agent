@@ -25,7 +25,7 @@ public class ClassMethodSelector {
 		definitionList.add(classMethodDefinition);
 	}
     public boolean shouldTransformClass(final String classNameDotted) {
-    	if (findMatchingDefinition(classNameDotted, null) != null)
+    	if (findEnabledMatchingDefinition(classNameDotted, null) != null)
     		return true;
     	return false;
 	}
@@ -40,6 +40,14 @@ public class ClassMethodSelector {
 	public Tracer findMatchingDefinition(final String classNameDotted, final String methodName) {
 		for (final Tracer definition : definitionList) {
 			if ( doesDefinitionMatch(definition, classNameDotted, methodName)) {
+				return definition;
+			}
+		}
+		return null;
+	}
+	public Tracer findEnabledMatchingDefinition(final String classNameDotted, final String methodName) {
+		for (final Tracer definition : definitionList) {
+			if ( doesDefinitionMatch(definition, classNameDotted, methodName) && definition.enabled) {
 				return definition;
 			}
 		}

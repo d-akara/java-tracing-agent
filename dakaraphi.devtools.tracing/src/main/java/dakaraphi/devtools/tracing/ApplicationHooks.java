@@ -36,6 +36,7 @@ public class ApplicationHooks {
 					builder.append(" ["+variableDescription + " = " + parameter+"]");
 				}
 				if (logConfig.multiLine) builder.append('\n');
+				count++;
 			}
 		}
 

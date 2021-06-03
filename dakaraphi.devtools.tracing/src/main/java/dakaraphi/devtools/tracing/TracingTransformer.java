@@ -33,7 +33,8 @@ public class TracingTransformer implements ClassFileTransformer {
         byte[] byteCode = classfileBuffer;
         final String classNameDotted = className.replaceAll("/", ".");
 
-        if (classMethodSelector.shouldTransformClass(classNameDotted)) {
+        // process the transform if we have tracers defined or if it was previously transformed as we might need to restore if the tracer definitions changed
+        if (shouldTransformClass(classNameDotted, classBeingRedefined)) {
  
             try {
                 final ClassPool classpool = ClassPool.getDefault();
@@ -111,7 +112,7 @@ public class TracingTransformer implements ClassFileTransformer {
 
     private void attemptTransform(final Class clazz) {
         final String classNameDotted = clazz.getName().replaceAll("/", ".");
-        if (classMethodSelector.shouldTransformClass(classNameDotted)) {
+        if (shouldTransformClass(classNameDotted, clazz)) {
         	try {
         		TraceLogger.log("re-evaluating rule definitions for class - " + clazz);
         		instrumentation.retransformClasses(clazz);
@@ -121,5 +122,9 @@ public class TracingTransformer implements ClassFileTransformer {
         		e.printStackTrace();
         	}
         }
+    }
+
+    private boolean shouldTransformClass(String classNameDotted, Class classBeingRedefined) {
+        return (classMethodSelector.shouldTransformClass(classNameDotted) || redefinedClasses.contains(classBeingRedefined));
     }
 }
