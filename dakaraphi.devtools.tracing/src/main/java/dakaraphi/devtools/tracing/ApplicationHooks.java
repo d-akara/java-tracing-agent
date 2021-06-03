@@ -1,8 +1,10 @@
 package dakaraphi.devtools.tracing;
 
+import static dakaraphi.devtools.tracing.common.Common.indexInList;
 import dakaraphi.devtools.tracing.StacktraceHasher.StacktraceHash;
 import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
+import dakaraphi.devtools.tracing.config.Tracer.Variable;
 import dakaraphi.devtools.tracing.config.Tracer.VariableCondition;
 import dakaraphi.devtools.tracing.config.TracingConfig.LogConfig;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
@@ -29,7 +31,9 @@ public class ApplicationHooks {
 						builder.append(" :list-value "+listIndex+++": " + nestedParameter);
 					}
 				} else {
-					builder.append(" :value "+count+++": " + parameter);
+					Variable variable = variableByIndex(tracerConfig, count);
+					String variableDescription = variable.name != null ? variable.name : variable.expression;
+					builder.append(" ["+variableDescription + " = " + parameter+"]");
 				}
 				if (logConfig.multiLine) builder.append('\n');
 			}
@@ -103,7 +107,7 @@ public class ApplicationHooks {
 
 			// check variable conditions
 			for (VariableCondition variable : tracerConfig.logWhen.variableValues) {
-				int variableIndex = tracerConfig.variables.indexOf(variable.name);
+				int variableIndex = indexInList(tracerConfig.variables, v -> v.name.equals(variable.name));
 				if (variableIndex != -1) {
 					Object parameterValue = parameters[variableIndex];
 					if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).matches()) {
@@ -132,5 +136,12 @@ public class ApplicationHooks {
 			}
 		}
 		return shouldLog;
+	}
+
+	private static Variable variableByIndex(Tracer tracer, int index) {
+		if (tracer.variables.size() > index) {
+			return tracer.variables.get(index);
+		}
+		return null;
 	}
 }

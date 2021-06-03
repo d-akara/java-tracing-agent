@@ -3,6 +3,7 @@ package dakaraphi.devtools.tracing;
 import java.util.List;
 
 import dakaraphi.devtools.tracing.config.Tracer;
+import dakaraphi.devtools.tracing.config.Tracer.Variable;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.CannotCompileException;
 import javassist.CtMethod;
@@ -19,15 +20,15 @@ public class MethodRewriter {
 	}
 	
 	// http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before
-	private String constructVariablesString(List<String> variables) {
-		if (variables == null) return ", null";
+	private String constructVariablesString(List<Variable> variables) {
+		if (variables.size() == 0) return ", null";
 
 		StringBuilder builder = new StringBuilder();
 		builder.append(", new java.lang.Object[]{");
 		boolean first = true;
-		for (String variable : variables) {
+		for (Variable variable : variables) {
 			if ( !first ) builder.append(',');
-			builder.append(variable);
+			builder.append(variable.expression);
 			first = false;
 		}
 		builder.append("}");

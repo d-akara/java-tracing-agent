@@ -7,9 +7,13 @@ public class TestApplication {
         for (int count = 0; count < 2; count++) {
             method2();
         }
-
+        method3("testing");
     }
     public static void method2() {
         System.out.println("Method 2 executed");
+    }
+
+    public static void method3(String name) {
+        System.out.println(name);
     }
 }

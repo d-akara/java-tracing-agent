@@ -15,9 +15,14 @@ public class Tracer {
 	public Pattern classRegex;
 	public Pattern methodRegex;
 	public Integer line;
-	public List<String> variables;
+	public List<Variable> variables = new ArrayList<>();
 	public LogWhen logWhen;
 	public LogStackFrames logStackFrames;
+
+	public static class Variable {
+		public String expression;
+		public String name;
+	}
 
 	public static class LogWhen {
 		public List<VariableCondition> variableValues = new ArrayList<>();

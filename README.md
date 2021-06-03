@@ -52,20 +52,31 @@ Tracer definition
             "enabled": "true",    // optional. default 'true'. 
             "name": "tracerName",  // optional. name will be logged in output
             "classRegex": ".*classname", "methodRegex": "methodname", "line": "0",  // specify the location for the log injection
-            "variables": ["$1, $2, localVarName"],  // optional. specify variables to include in the output
+            "variables": [ // optional. specify variables to include in the output
+              {"name":"logAsName", // optional. name to use when logging
+              "expression": "localVarName"} // optional. value to log
+            ],
             "logWhen": { // optional. specify conditions for when to log
                 "stackFramesRegex": "package.*classname",  // optional. log when any stack frame class and method matches
                 "variableValues": [
-                    {"index": 0, "valueRegex": ".*value.*"}  // optional. log when a logging variable matches this value
+                    {"name": "logAsName", "valueRegex": ".*value.*"}  // optional. log when a logging variable matches this value
                 ],                
                 "threadNameRegex": ".*threadname.*"  // optional. log when thread name matches
             },
             "logStackFrames": { // optional. log class, method and line number from elements of the stack trace
                 "limit": 10, // optional. log max number of frames
-                "includeRegex": "package.*"  // optional. log only frames matching
+                "includeRegex": "package.*",  // optional. log only frames matching
+                "excludeRegex": "package.*",  // optional. exclude frames from logging
+                "referenceDuplicatesByHash": "false"  // optional. Do not log the same full stack frames if already logged.  Log the hash id of the original instead.
             }
         }
-    ]
+    ],
+    "logConfig": {
+      "threadName": "false", // optional. include thread name
+	    "threadId": "false", // optional. include thread Id
+	    "executionCount": "false", // optional. include the count of executions for each tracer
+	    "multiLine": "false" // optional. log variable values on new lines
+    }
 }
  ```
 

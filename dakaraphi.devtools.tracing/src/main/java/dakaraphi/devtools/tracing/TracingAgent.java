@@ -10,6 +10,7 @@ import dakaraphi.devtools.tracing.config.TracingConfig;
 import dakaraphi.devtools.tracing.filewatcher.FileWatcher;
 import dakaraphi.devtools.tracing.filewatcher.IFileListener;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
+import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 
 /**
  * TracingAgent can only be launched within a jar file.
@@ -47,6 +48,7 @@ public class TracingAgent {
 				transformer.setClassMethodSelector(selector);
 				transformer.retransform();
 				StacktraceHasher.clear();
+				ExecutionCounts.clear();
 			}
 		}, configFile).start();
 	}
