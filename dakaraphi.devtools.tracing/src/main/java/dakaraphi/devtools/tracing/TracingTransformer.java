@@ -97,7 +97,7 @@ public class TracingTransformer implements ClassFileTransformer {
         // first retransform any previous loaded classes.  
         // this is to ensure if rules in the tracer.json have changed that we can restore
         // classes that may have been removed from the tracer.json or rules don't apply anymore
-        for (final Class clazz : redefinedClasses) {
+        for (final Class clazz : Set.copyOf(redefinedClasses)) {
             attemptTransform(clazz);
         }
 
