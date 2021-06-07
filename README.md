@@ -1,4 +1,7 @@
 # Java Tracing Agent
+
+![ScreenShot](images/jta.banner.png)
+
 A lightweight and fast runtime injection tool for logging and tracing that can also trace OSGi applications.
 
 Inject logging anywhere into your running application.
