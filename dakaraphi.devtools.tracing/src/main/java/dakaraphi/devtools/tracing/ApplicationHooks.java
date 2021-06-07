@@ -15,32 +15,36 @@ public class ApplicationHooks {
 	// http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before
     public static void logMethodParameters(final int tracerId, final String classname, final String methodname, final Object[] parameters) {
 		Tracer tracerConfig = TracingAgent.tracingConfig.tracers.get(tracerId);
-		if (!shouldLog(tracerConfig, parameters)) return;
-
-		LogConfig logConfig = TracingAgent.tracingConfig.logConfig;
-		StringBuilder builder = new StringBuilder();
-		builder.append(classname + ": "+methodname);
-		if (logConfig.multiLine) builder.append('\n');
-		int count = 0;
-
-		if (parameters != null) {
-			for ( final Object parameter : parameters ) {
-				if ( parameter instanceof Object[]) {
-					int listIndex = 0;
-					for ( final Object nestedParameter : (Object[])parameter) {
-						builder.append(" :list-value "+listIndex+++": " + nestedParameter);
+		try {			
+			if (!shouldLog(tracerConfig, parameters)) return;
+	
+			LogConfig logConfig = TracingAgent.tracingConfig.logConfig;
+			StringBuilder builder = new StringBuilder();
+			builder.append(classname + ": "+methodname);
+			if (logConfig.multiLine) builder.append('\n');
+			int count = 0;
+	
+			if (parameters != null) {
+				for ( final Object parameter : parameters ) {
+					if ( parameter instanceof Object[]) {
+						int listIndex = 0;
+						for ( final Object nestedParameter : (Object[])parameter) {
+							builder.append(" :list-value "+listIndex+++": " + nestedParameter);
+						}
+					} else {
+						Variable variable = variableByIndex(tracerConfig, count);
+						String variableDescription = variable.name != null ? variable.name : variable.expression;
+						builder.append(" ["+variableDescription + " = " + parameter+"]");
 					}
-				} else {
-					Variable variable = variableByIndex(tracerConfig, count);
-					String variableDescription = variable.name != null ? variable.name : variable.expression;
-					builder.append(" ["+variableDescription + " = " + parameter+"]");
+					if (logConfig.multiLine) builder.append('\n');
+					count++;
 				}
-				if (logConfig.multiLine) builder.append('\n');
-				count++;
 			}
+	
+			writeLog(tracerConfig, builder.toString());
+		} catch (Throwable e) {
+			TraceLogger.log("tracer ["+tracerConfig.name+"] problem invoking logging hook - " + e.getMessage());
 		}
-
-		writeLog(tracerConfig, builder.toString());
 	}
 	
 	public static void writeLog(Tracer tracerConfig, String text) {

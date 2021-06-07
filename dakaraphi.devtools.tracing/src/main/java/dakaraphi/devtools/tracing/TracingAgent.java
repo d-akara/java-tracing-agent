@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import dakaraphi.devtools.tracing.config.ConfigurationSerializer;
 import dakaraphi.devtools.tracing.config.TracingConfig;
 import dakaraphi.devtools.tracing.filewatcher.FileWatcher;
@@ -30,7 +33,7 @@ import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 public class TracingAgent {
 	public static TracingConfig tracingConfig = null;
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	TraceLogger.log("Starting v1.0.5");
+    	TraceLogger.log("Starting v1.0.7");
 		String tracerDefinitionFile = System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY);
 		if (tracerDefinitionFile == null) {
 			TraceLogger.log("Missing system property " + ConfigurationSerializer.FILE_PROPERTY_KEY);
@@ -38,12 +41,18 @@ public class TracingAgent {
 		}
 		final File configFile = new File(System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY));
 		TraceLogger.log("using tracer definitions: " + configFile);
-		ClassMethodSelector selector = loadConfig(configFile);
+
+		ClassMethodSelector selector = null;
+		try {
+			selector = loadConfig(configFile);
+		} catch (Throwable e) {
+			TraceLogger.log("unable to load configuration definition - " + e.getMessage());
+		}
     	
     	final TracingTransformer transformer = new TracingTransformer(instrumentation, selector, new MethodRewriter());
     	
     	FileWatcher.createFileWatcher().addListener(new IFileListener() {
-			public void onFileChange() {
+			public void onFileChange() throws Throwable {
 				ClassMethodSelector selector = loadConfig(configFile);
 				transformer.setClassMethodSelector(selector);
 				transformer.retransform();
@@ -53,7 +62,7 @@ public class TracingAgent {
 		}, configFile).start();
 	}
 	
-	private static ClassMethodSelector loadConfig(File configFile) {
+	private static ClassMethodSelector loadConfig(File configFile) throws JsonParseException, JsonMappingException, IOException {
 		ConfigurationSerializer serializer = new ConfigurationSerializer(configFile);
 		tracingConfig = serializer.readConfig();
 		return ClassMethodSelector.makeSelector(tracingConfig);
@@ -66,7 +75,6 @@ public class TracingAgent {
  - add support for triggers
  - add support for constructors
  - prevent infinite recursion if someone attempts to trace a JDK class that the tracer itself uses
- - ensure startup and stability with bad tracer config JSON
  - allow tracers to override the global logConfig
  - add support for timers.  Just measure and log diff between each occurrence of timer by same name. option, on same thread.
 */

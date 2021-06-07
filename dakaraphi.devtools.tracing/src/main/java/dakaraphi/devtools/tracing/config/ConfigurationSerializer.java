@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ConfigurationSerializer {
@@ -17,17 +19,13 @@ public class ConfigurationSerializer {
 		this.configFile = configFile;
 	}
 	
-	public TracingConfig readConfig() {
-		try {
-			JsonFactory jsonFactory = new JsonFactory();
-			jsonFactory.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-			ObjectMapper mapper = new ObjectMapper(jsonFactory);
-			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			tracingConfig = mapper.readValue(configFile, TracingConfig.class);
+	public TracingConfig readConfig() throws JsonParseException, JsonMappingException, IOException {
+		JsonFactory jsonFactory = new JsonFactory();
+		jsonFactory.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+		ObjectMapper mapper = new ObjectMapper(jsonFactory);
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		tracingConfig = mapper.readValue(configFile, TracingConfig.class);
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		return tracingConfig;
 	}
 }

@@ -56,8 +56,10 @@ Tracer definition
             "name": "tracerName",  // optional. name will be logged in output
             "classRegex": ".*classname", "methodRegex": "methodname", "line": "0",  // specify the location for the log injection
             "variables": [ // optional. specify variables to include in the output
-              {"name":"logAsName", // optional. name to use when logging
-              "expression": "localVarName"} // optional. value to log
+              {
+                "name":"logAsName", // optional. name to use when logging
+                "expression": "localVarName" // optional. value to log
+              }
             ],
             "logWhen": { // optional. specify conditions for when to log
                 "stackFramesRegex": "package.*classname",  // optional. log when any stack frame class and method matches
@@ -90,7 +92,11 @@ A simple tracer definition JSON
         {
             "name": "Request",
             "classRegex": "com.example.MyClass", "methodRegex": "myMethod", "line": "0",
-            "variables": ["$1"]
+            "variables": [
+              {
+                "expression": "$1" // log first parameter
+              }
+            ]
         },
     ]
 }

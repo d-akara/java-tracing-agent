@@ -18,7 +18,7 @@ import javassist.LoaderClassPath;
 
 public class TracingTransformer implements ClassFileTransformer {
 	private static Instrumentation instrumentation;
-    private static Set<Class> redefinedClasses = new HashSet<>();
+    private static Set<String> redefinedClasses = new HashSet<>();
 	private ClassMethodSelector classMethodSelector;
 	private MethodRewriter methodRewriter;
 	public TracingTransformer(final Instrumentation instrumentation, ClassMethodSelector classMethodSelector, MethodRewriter methodRewriter) {
@@ -29,12 +29,12 @@ public class TracingTransformer implements ClassFileTransformer {
 		TraceLogger.log("TracingTransformer active");
 	}
 	
-    public byte[] transform(final ClassLoader loader, final String className, final Class classBeingRedefined, final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
+    public byte[] transform(final ClassLoader loader, final String className, final Class<?> classBeingRedefined, final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
         byte[] byteCode = classfileBuffer;
         final String classNameDotted = className.replaceAll("/", ".");
 
         // process the transform if we have tracers defined or if it was previously transformed as we might need to restore if the tracer definitions changed
-        if (shouldTransformClass(classNameDotted, classBeingRedefined)) {
+        if (shouldTransformClass(classNameDotted)) {
  
             try {
                 final ClassPool classpool = ClassPool.getDefault();
@@ -44,7 +44,6 @@ public class TracingTransformer implements ClassFileTransformer {
                 classpool.appendClassPath(loaderClassPath);
                 // This class has not yet actually been loaded by any classloader, so we must add the class directly so it can be found by the classpool.
                 classpool.insertClassPath(byteArrayClassPath);
-                
                 final CtClass editableClass = classpool.get(classNameDotted);
                 final CtMethod declaredMethods[] = editableClass.getDeclaredMethods();
                 boolean modifiedMethods = false;
@@ -67,12 +66,12 @@ public class TracingTransformer implements ClassFileTransformer {
                 classpool.removeClassPath(byteArrayClassPath);
                 
                 if (modifiedMethods) {
-                    redefinedClasses.add(classBeingRedefined);
+                    redefinedClasses.add(classNameDotted);
                     TraceLogger.log("modified class - " + classNameDotted);
                 } else {
                     // If this class was previously transformed we can now remove it
                     // from our list as it is not transformed using the current rules
-                    if (redefinedClasses.remove(classBeingRedefined))
+                    if (redefinedClasses.remove(classNameDotted))
                         TraceLogger.log("restored class - " + classNameDotted);
                 }
             } catch (Throwable ex) {
@@ -94,37 +93,28 @@ public class TracingTransformer implements ClassFileTransformer {
     }
 
     public void retransform() {
-        // first retransform any previous loaded classes.  
-        // this is to ensure if rules in the tracer.json have changed that we can restore
-        // classes that may have been removed from the tracer.json or rules don't apply anymore
-        for (final Class clazz : Set.copyOf(redefinedClasses)) {
-            attemptTransform(clazz);
-        }
+        TraceLogger.log(redefinedClasses.toString());
 
-    	final Class[] loadedClasses = instrumentation.getAllLoadedClasses();
-    	for (final Class clazz : loadedClasses) {
-            if (!redefinedClasses.contains(clazz)) {
-                // we have not processed this class yet
-                attemptTransform(clazz);
-            }
+    	final Class<?>[] loadedClasses = instrumentation.getAllLoadedClasses();
+    	for (final Class<?> clazz : loadedClasses) {
+            attemptTransform(clazz);
     	}
     }
 
-    private void attemptTransform(final Class clazz) {
+    private void attemptTransform(final Class<?> clazz) {
         final String classNameDotted = clazz.getName().replaceAll("/", ".");
-        if (shouldTransformClass(classNameDotted, clazz)) {
+        if (shouldTransformClass(classNameDotted)) {
         	try {
         		TraceLogger.log("re-evaluating rule definitions for class - " + clazz);
         		instrumentation.retransformClasses(clazz);
 
         	} catch (UnmodifiableClassException e) {
-        		// TODO Auto-generated catch block
         		e.printStackTrace();
         	}
         }
     }
 
-    private boolean shouldTransformClass(String classNameDotted, Class classBeingRedefined) {
-        return (classMethodSelector.shouldTransformClass(classNameDotted) || redefinedClasses.contains(classBeingRedefined));
+    private boolean shouldTransformClass(String classNameDotted) {
+        return (classMethodSelector.shouldTransformClass(classNameDotted) || redefinedClasses.contains(classNameDotted));
     }
 }
