@@ -33,7 +33,7 @@ import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 public class TracingAgent {
 	public static TracingConfig tracingConfig = null;
     public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-    	TraceLogger.log("Starting v1.0.8");
+    	TraceLogger.log("Starting v1.0.9");
 		String tracerDefinitionFile = System.getProperty(ConfigurationSerializer.FILE_PROPERTY_KEY);
 		if (tracerDefinitionFile == null) {
 			TraceLogger.log("Missing system property " + ConfigurationSerializer.FILE_PROPERTY_KEY);
