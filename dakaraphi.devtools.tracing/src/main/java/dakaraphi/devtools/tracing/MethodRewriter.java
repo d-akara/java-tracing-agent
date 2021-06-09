@@ -6,15 +6,14 @@ import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.Variable;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.CannotCompileException;
-import javassist.CtMethod;
+import javassist.CtBehavior;
 
 public class MethodRewriter {
 
-	public void editMethod(final CtMethod editableMethod, final Tracer classMethodDefinition) throws CannotCompileException {
+	public void editMethod(final CtBehavior editableMethod, final String methodName, final Tracer classMethodDefinition) throws CannotCompileException {
 		final String classname = editableMethod.getDeclaringClass().getName();
-		// TODO - need to add some Trace id so we can lookup the tracer on invocation
 		final String methodInvocation = ApplicationHooks.class.getPackage().getName() +"."+ ApplicationHooks.class.getSimpleName() + ".logMethodParameters";
-		final String javaStatement = methodInvocation + "("+classMethodDefinition.id+", \""+classname+"\", \""+editableMethod.getName()+"\"" + constructVariablesString(classMethodDefinition.variables) +");";
+		final String javaStatement = methodInvocation + "("+classMethodDefinition.id+", \""+classname+"\", \""+methodName+"\"" + constructVariablesString(classMethodDefinition.variables) +");";
 		TraceLogger.log("inserting statement: " + javaStatement);
 		performStatementInsertion(editableMethod, classMethodDefinition, javaStatement);
 	}
@@ -35,7 +34,7 @@ public class MethodRewriter {
 		return builder.toString();
 	}
 
-	private void performStatementInsertion(final CtMethod editableMethod, final Tracer classMethodDefinition, final String javaStatement) throws CannotCompileException {
+	private void performStatementInsertion(final CtBehavior editableMethod, final Tracer classMethodDefinition, final String javaStatement) throws CannotCompileException {
 		if ( classMethodDefinition.line == ClassMethodSelector.LINE_LAST)
 			editableMethod.insertAfter(javaStatement);
 		else if (classMethodDefinition.line == ClassMethodSelector.LINE_FIRST) {

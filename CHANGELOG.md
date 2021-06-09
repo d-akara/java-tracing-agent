@@ -7,6 +7,7 @@
   - logWhen condition for variables now uses 'name' instead of 'index' to refer to the variable to apply the logging condition.
   - count total executions for each tracer
   - specify types for parameters to match specific overloaded methods
+  - constructors can now be selected using the method regex
 - Improvements
   - Corrupted configuration file will be ignored
     - File watcher will keep watching the file and will correctly restore configuration when configuration is valid

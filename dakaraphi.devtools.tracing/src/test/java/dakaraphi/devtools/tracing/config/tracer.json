@@ -22,6 +22,16 @@
         },
         {
             "enabled": "true",    // optional. default 'true'. 
+            "name": "constructor inner class test",  // optional. name will be logged in output
+            "classRegex": "dakaraphi.devtools.TestApplication\\$SimpleObject", "methodRegex": "SimpleObject" // specify the location for the log injection
+        },
+        {
+            "enabled": "true",    // optional. default 'true'. 
+            "name": "constructor test",  // optional. name will be logged in output
+            "classRegex": "dakaraphi.devtools.PlainObject", "methodRegex": "PlainObject" // specify the location for the log injection
+        },
+        {
+            "enabled": "true",    // optional. default 'true'. 
             "name": "method3",  // optional. name will be logged in output
             "classRegex": "dakaraphi.devtools.TestApplication", "methodRegex": "method3", "line": "0",  // specify the location for the log injection
             "variables":[

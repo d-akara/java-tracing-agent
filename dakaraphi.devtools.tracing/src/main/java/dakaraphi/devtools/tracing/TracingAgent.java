@@ -74,7 +74,6 @@ public class TracingAgent {
  - consider exposing a live interface using - https://github.com/perwendel/spark
  - add support for triggers
  - add support for constructors
- - prevent infinite recursion if someone attempts to trace a JDK class that the tracer itself uses
  - allow tracers to override the global logConfig
  - add support for timers.  Just measure and log diff between each occurrence of timer by same name. option, on same thread.
  - tracing a low level function like System.out.println.  The class will have already been loaded when the agent starts and therefore will not invoke the transformer

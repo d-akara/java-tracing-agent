@@ -5,7 +5,9 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,8 +17,8 @@ import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.ByteArrayClassPath;
 import javassist.ClassPath;
 import javassist.ClassPool;
+import javassist.CtBehavior;
 import javassist.CtClass;
-import javassist.CtMethod;
 import javassist.LoaderClassPath;
 
 public class TracingTransformer implements ClassFileTransformer {
@@ -48,14 +50,16 @@ public class TracingTransformer implements ClassFileTransformer {
                 // This class has not yet actually been loaded by any classloader, so we must add the class directly so it can be found by the classpool.
                 classpool.insertClassPath(byteArrayClassPath);
                 final CtClass editableClass = classpool.get(classNameDotted);
-                final CtMethod declaredMethods[] = editableClass.getDeclaredMethods();
+                List<CtBehavior> allBehaviors = collectAllBehaviors(editableClass);
+
                 boolean modifiedMethods = false;
-                for (final CtMethod editableMethod : declaredMethods) {
+                for (final CtBehavior editableMethod : allBehaviors) {
+                    String methodName = resolveMethodName(editableMethod);
                     List<String> typeNames = Arrays.stream(editableMethod.getParameterTypes()).map(clazz -> clazz.getName()).collect(Collectors.toList());
-                	if (classMethodSelector.shouldTransformMethod(classNameDotted, editableMethod.getName(), typeNames)) {
+                	if (classMethodSelector.shouldTransformMethod(classNameDotted, methodName, typeNames)) {
                         // TODO should allow for multiple matching definitions being processed
                         // TODO we might be broken handling primitives.  Need to handle or filter out for now
-                        methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName(), typeNames));
+                        methodRewriter.editMethod(editableMethod, methodName, classMethodSelector.findMatchingDefinition(classNameDotted, methodName, typeNames));
                         modifiedMethods = true;
                 	}
                 }
@@ -86,7 +90,24 @@ public class TracingTransformer implements ClassFileTransformer {
  
         return byteCode;
     }
-    
+
+    /**
+     * Get the collection of all methods and constructors defined on class
+     * @param editableClass
+     * @return
+     */
+    private List<CtBehavior> collectAllBehaviors(final CtClass editableClass) {
+        final CtBehavior declaredMethods[] = editableClass.getDeclaredMethods();
+        final CtBehavior declaredConstructors[] = editableClass.getDeclaredConstructors();
+        List<CtBehavior> allBehaviors = new ArrayList<>();
+        for (CtBehavior behavior : declaredConstructors) {
+            allBehaviors.add(behavior);
+        }
+        for (CtBehavior behavior : declaredMethods) {
+            allBehaviors.add(behavior);
+        }
+        return allBehaviors;
+    }
 
     public void setClassMethodSelector(ClassMethodSelector classMethodSelector) {
     	this.classMethodSelector = classMethodSelector;
@@ -118,5 +139,17 @@ public class TracingTransformer implements ClassFileTransformer {
 
     private boolean shouldTransformClass(String classNameDotted) {
         return (classMethodSelector.shouldTransformClass(classNameDotted) || redefinedClasses.contains(classNameDotted));
+    }
+
+    /**
+     * remove $ in the name of inner class methods to make tracer config simple.
+     * @param behavior
+     * @return
+     */
+    private String resolveMethodName(CtBehavior behavior) {
+        String rawName = behavior.getName();
+        String[] parts = rawName.split("\\$");
+        if (parts.length == 1) return parts[0];
+        return parts[1];
     }
 }
