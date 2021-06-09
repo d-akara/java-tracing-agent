@@ -1,15 +1,16 @@
 package dakaraphi.devtools.tracing.config;
 
-import org.junit.Test;
+import java.io.File;
 
-import dakaraphi.devtools.tracing.ClassMethodSelector;
+import org.junit.Test;
 
 public class ConfigurationSerializer_Test {
 
 	@Test
-	public void canReadJsonFile() {
-		System.setProperty(ConfigurationSerializer.FILE_PROPERTY_KEY, System.getProperty("user.dir") + "/config.json");
-		ConfigurationSerializer serializer = new ConfigurationSerializer();
-		serializer.map(new ClassMethodSelector());
+	public void canReadJsonFile() throws Exception {
+		File tracerFile = new File(ConfigurationSerializer_Test.class.getResource("/dakaraphi/devtools/tracing/config/tracer.json").toURI());
+		ConfigurationSerializer serializer = new ConfigurationSerializer(tracerFile);
+		TracingConfig config = serializer.readConfig();
+		System.out.println(config.tracers.get(0).name);
 	}
 }

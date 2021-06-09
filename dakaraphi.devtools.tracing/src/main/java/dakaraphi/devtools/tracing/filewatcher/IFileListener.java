@@ -1,5 +1,5 @@
 package dakaraphi.devtools.tracing.filewatcher;
 
 public interface IFileListener {
-	public void onFileChange();
+	public void onFileChange() throws Throwable;
 }

@@ -9,6 +9,7 @@ public class TracingConfig {
 	public static class LogConfig {
 		public boolean threadName;
 		public boolean threadId;
+		public boolean executionCount;
 		public boolean multiLine;
 	}
 }
