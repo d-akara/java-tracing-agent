@@ -1,4 +1,7 @@
 # Java Tracing Agent
+
+![ScreenShot](images/jta.banner.png)
+
 A lightweight and fast runtime injection tool for logging and tracing that can also trace OSGi applications.
 
 Inject logging anywhere into your running application.
@@ -52,20 +55,36 @@ Tracer definition
             "enabled": "true",    // optional. default 'true'. 
             "name": "tracerName",  // optional. name will be logged in output
             "classRegex": ".*classname", "methodRegex": "methodname", "line": "0",  // specify the location for the log injection
-            "variables": ["$1, $2, localVarName"],  // optional. specify variables to include in the output
+            "types": [ // optional.  specify to match specific overloaded methods
+                {"index": 0, "typeRegex":".*String"} // optional. index of parameter, regex to match the type name
+            ],
+            "variables": [ // optional. specify variables to include in the output
+              {
+                "name":"logAsName", // optional. name to use when logging
+                "expression": "localVarName" // optional. value to log
+              }
+            ],
             "logWhen": { // optional. specify conditions for when to log
                 "stackFramesRegex": "package.*classname",  // optional. log when any stack frame class and method matches
                 "variableValues": [
-                    {"index": 0, "valueRegex": ".*value.*"}  // optional. log when a logging variable matches this value
+                    {"name": "logAsName", "valueRegex": ".*value.*"}  // optional. log when a logging variable matches this value
                 ],                
                 "threadNameRegex": ".*threadname.*"  // optional. log when thread name matches
             },
             "logStackFrames": { // optional. log class, method and line number from elements of the stack trace
                 "limit": 10, // optional. log max number of frames
-                "includeRegex": "package.*"  // optional. log only frames matching
+                "includeRegex": "package.*",  // optional. log only frames matching
+                "excludeRegex": "package.*",  // optional. exclude frames from logging
+                "referenceDuplicatesByHash": "false"  // optional. Do not log the same full stack frames if already logged.  Log the hash id of the original instead.
             }
         }
-    ]
+    ],
+    "logConfig": {
+      "threadName": "false", // optional. include thread name
+	    "threadId": "false", // optional. include thread Id
+	    "executionCount": "false", // optional. include the count of executions for each tracer
+	    "multiLine": "false" // optional. log variable values on new lines
+    }
 }
  ```
 
@@ -75,8 +94,12 @@ A simple tracer definition JSON
     "tracers": [   
         {
             "name": "Request",
-            "classRegex": "com.example.MyClass", "methodRegex": "myMethod", "line": "0",
-            "variables": ["$1"]
+            "classRegex": "com.example.MyClass", "methodRegex": "myMethod",
+            "variables": [
+              {
+                "expression": "$1" // log first parameter
+              }
+            ]
         },
     ]
 }
@@ -86,3 +109,6 @@ A simple tracer definition JSON
 These are libraries that make Java Tracing Agent possible
 - [Javassist](https://github.com/jboss-javassist/javassist) used to assist rewrite of the bytecodes for classes
 - [Jackson](https://github.com/FasterXML/jackson) used to load the JSON configuration
+
+## Build
+`gradlew shadowJar` will create jar file `dakaraphi.devtools.tracing/build/libs/dakaraphi.devtools.tracing-all.jar`

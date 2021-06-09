@@ -1,38 +1,54 @@
 package dakaraphi.devtools.tracing;
 
+import static dakaraphi.devtools.tracing.common.Common.indexInList;
+import dakaraphi.devtools.tracing.StacktraceHasher.StacktraceHash;
+import dakaraphi.devtools.tracing.common.Recursion;
 import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
+import dakaraphi.devtools.tracing.config.Tracer.Variable;
 import dakaraphi.devtools.tracing.config.Tracer.VariableCondition;
 import dakaraphi.devtools.tracing.config.TracingConfig.LogConfig;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
+import dakaraphi.devtools.tracing.metrics.ExecutionCounts;
 
 public class ApplicationHooks {
+
 	// http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before
     public static void logMethodParameters(final int tracerId, final String classname, final String methodname, final Object[] parameters) {
 		Tracer tracerConfig = TracingAgent.tracingConfig.tracers.get(tracerId);
-		if (!shouldLog(tracerConfig, parameters)) return;
-
-		LogConfig logConfig = TracingAgent.tracingConfig.logConfig;
-		StringBuilder builder = new StringBuilder();
-		builder.append(classname + ": "+methodname);
-		if (logConfig.multiLine) builder.append('\n');
-		int count = 0;
-
-		if (parameters != null) {
-			for ( final Object parameter : parameters ) {
-				if ( parameter instanceof Object[]) {
-					int listIndex = 0;
-					for ( final Object nestedParameter : (Object[])parameter) {
-						builder.append(" :list-value "+listIndex+++": " + nestedParameter);
+		try {	
+			if (Recursion.isRecursion()) return; // don't do anything, we may be in a recurssive loop because something used in this method has been traced.
+			if (!shouldLog(tracerConfig, parameters)) return;
+	
+			LogConfig logConfig = TracingAgent.tracingConfig.logConfig;
+			StringBuilder builder = new StringBuilder();
+			builder.append(classname + ": "+methodname);
+			if (logConfig.multiLine) builder.append('\n');
+			int count = 0;
+	
+			if (parameters != null) {
+				for ( final Object parameter : parameters ) {
+					if ( parameter instanceof Object[]) {
+						int listIndex = 0;
+						for ( final Object nestedParameter : (Object[])parameter) {
+							builder.append(" :list-value "+listIndex+++": " + nestedParameter);
+						}
+					} else {
+						Variable variable = variableByIndex(tracerConfig, count);
+						String variableDescription = variable.name != null ? variable.name : variable.expression;
+						builder.append(" ["+variableDescription + " = " + parameter+"]");
 					}
-				} else {
-					builder.append(" :value "+count+++": " + parameter);
+					if (logConfig.multiLine) builder.append('\n');
+					count++;
 				}
-				if (logConfig.multiLine) builder.append('\n');
 			}
+	
+			writeLog(tracerConfig, builder.toString());
+		} catch (Throwable e) {
+			TraceLogger.log("tracer ["+tracerConfig.name+"] problem invoking logging hook - " + e.getMessage());
+		} finally {
+			Recursion.exitRecursionCheck();
 		}
-
-		writeLog(tracerConfig, builder.toString());
 	}
 	
 	public static void writeLog(Tracer tracerConfig, String text) {
@@ -41,6 +57,13 @@ public class ApplicationHooks {
 		String time = new java.text.SimpleDateFormat("hh:mm:ss,SSS").format(new java.util.Date());
 		builder.append(time);
 		if (tracerConfig.name != null) builder.append(" [" +tracerConfig.name+ "]");
+
+		if (logConfig.executionCount) {
+			builder.append(" count[");
+			builder.append(ExecutionCounts.incrementExecutionCount(tracerConfig.id));
+			builder.append("]:");
+		}
+
 		if (logConfig.threadId || logConfig.threadName) {
 			builder.append(" thread:[");
 			if (logConfig.threadId)   builder.append(Thread.currentThread().getId());
@@ -57,6 +80,17 @@ public class ApplicationHooks {
 
 	private static void appendStackFrames(LogStackFrames logStackFramesConfig, StringBuilder content) {
 		StackTraceElement[] stackFrames = new Throwable().getStackTrace();
+
+		if (logStackFramesConfig.referenceDuplicatesByHash) {
+			StacktraceHash stackHash = StacktraceHasher.getExistingStackFrameHashChain(stackFrames);
+			if (stackHash.firstOccurrence) {
+				content.append("\n stack frames hash["+ stackHash.hashValue + "]\n");
+			} else {
+				content.append("\n stack frames reference["+ stackHash.hashValue + "] ...\n");
+				return;
+			}
+		}
+
 		int stackDepth = 0;
 		int framesLogged = 0;
 		for (StackTraceElement stackFrame : stackFrames) {
@@ -82,9 +116,12 @@ public class ApplicationHooks {
 
 			// check variable conditions
 			for (VariableCondition variable : tracerConfig.logWhen.variableValues) {
-				Object parameterValue = parameters[variable.index];
-				if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).matches()) {
-					return false;
+				int variableIndex = indexInList(tracerConfig.variables, v -> v.name.equals(variable.name));
+				if (variableIndex != -1) {
+					Object parameterValue = parameters[variableIndex];
+					if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).find()) {
+						return false;
+					}
 				}
 			}
 
@@ -108,5 +145,12 @@ public class ApplicationHooks {
 			}
 		}
 		return shouldLog;
+	}
+
+	private static Variable variableByIndex(Tracer tracer, int index) {
+		if (tracer.variables.size() > index) {
+			return tracer.variables.get(index);
+		}
+		return null;
 	}
 }
