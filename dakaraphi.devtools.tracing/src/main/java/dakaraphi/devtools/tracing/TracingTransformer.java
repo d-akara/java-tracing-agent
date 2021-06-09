@@ -5,8 +5,11 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.ByteArrayClassPath;
@@ -48,10 +51,11 @@ public class TracingTransformer implements ClassFileTransformer {
                 final CtMethod declaredMethods[] = editableClass.getDeclaredMethods();
                 boolean modifiedMethods = false;
                 for (final CtMethod editableMethod : declaredMethods) {
-                	if (classMethodSelector.shouldTransformMethod(classNameDotted, editableMethod.getName())) {
+                    List<String> typeNames = Arrays.stream(editableMethod.getParameterTypes()).map(clazz -> clazz.getName()).collect(Collectors.toList());
+                	if (classMethodSelector.shouldTransformMethod(classNameDotted, editableMethod.getName(), typeNames)) {
                         // TODO should allow for multiple matching definitions being processed
                         // TODO we might be broken handling primitives.  Need to handle or filter out for now
-                        methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName()));
+                        methodRewriter.editMethod(editableMethod, classMethodSelector.findMatchingDefinition(classNameDotted, editableMethod.getName(), typeNames));
                         modifiedMethods = true;
                 	}
                 }
@@ -93,8 +97,6 @@ public class TracingTransformer implements ClassFileTransformer {
     }
 
     public void retransform() {
-        TraceLogger.log(redefinedClasses.toString());
-
     	final Class<?>[] loadedClasses = instrumentation.getAllLoadedClasses();
     	for (final Class<?> clazz : loadedClasses) {
             attemptTransform(clazz);

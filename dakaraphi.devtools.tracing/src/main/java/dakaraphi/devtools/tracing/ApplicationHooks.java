@@ -2,6 +2,7 @@ package dakaraphi.devtools.tracing;
 
 import static dakaraphi.devtools.tracing.common.Common.indexInList;
 import dakaraphi.devtools.tracing.StacktraceHasher.StacktraceHash;
+import dakaraphi.devtools.tracing.common.Recursion;
 import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.LogStackFrames;
 import dakaraphi.devtools.tracing.config.Tracer.Variable;
@@ -15,7 +16,8 @@ public class ApplicationHooks {
 	// http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before
     public static void logMethodParameters(final int tracerId, final String classname, final String methodname, final Object[] parameters) {
 		Tracer tracerConfig = TracingAgent.tracingConfig.tracers.get(tracerId);
-		try {			
+		try {	
+			if (Recursion.isRecursion()) return; // don't do anything, we may be in a recurssive loop because something used in this method has been traced.
 			if (!shouldLog(tracerConfig, parameters)) return;
 	
 			LogConfig logConfig = TracingAgent.tracingConfig.logConfig;
@@ -44,6 +46,8 @@ public class ApplicationHooks {
 			writeLog(tracerConfig, builder.toString());
 		} catch (Throwable e) {
 			TraceLogger.log("tracer ["+tracerConfig.name+"] problem invoking logging hook - " + e.getMessage());
+		} finally {
+			Recursion.exitRecursionCheck();
 		}
 	}
 	

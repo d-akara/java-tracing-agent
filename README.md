@@ -55,6 +55,9 @@ Tracer definition
             "enabled": "true",    // optional. default 'true'. 
             "name": "tracerName",  // optional. name will be logged in output
             "classRegex": ".*classname", "methodRegex": "methodname", "line": "0",  // specify the location for the log injection
+            "types": [ // optional.  specify to match specific overloaded methods
+                {"index": 0, "typeRegex":".*String"} // optional. index of parameter, regex to match the type name
+            ],
             "variables": [ // optional. specify variables to include in the output
               {
                 "name":"logAsName", // optional. name to use when logging
@@ -91,7 +94,7 @@ A simple tracer definition JSON
     "tracers": [   
         {
             "name": "Request",
-            "classRegex": "com.example.MyClass", "methodRegex": "myMethod", "line": "0",
+            "classRegex": "com.example.MyClass", "methodRegex": "myMethod",
             "variables": [
               {
                 "expression": "$1" // log first parameter

@@ -14,7 +14,8 @@ public class Tracer {
 	public String name;
 	public Pattern classRegex;
 	public Pattern methodRegex;
-	public Integer line;
+	public List<Type> types = new ArrayList<>();
+	public Integer line = Integer.valueOf(0);
 	public List<Variable> variables = new ArrayList<>();
 	public LogWhen logWhen;
 	public LogStackFrames logStackFrames;
@@ -22,6 +23,11 @@ public class Tracer {
 	public static class Variable {
 		public String expression;
 		public String name;
+	}
+
+	public static class Type {
+		public Integer index;
+		public Pattern typeRegex;
 	}
 
 	public static class LogWhen {
