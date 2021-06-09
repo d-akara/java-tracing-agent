@@ -119,7 +119,7 @@ public class ApplicationHooks {
 				int variableIndex = indexInList(tracerConfig.variables, v -> v.name.equals(variable.name));
 				if (variableIndex != -1) {
 					Object parameterValue = parameters[variableIndex];
-					if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).matches()) {
+					if (parameterValue == null || !variable.valueRegex.matcher(parameterValue.toString()).find()) {
 						return false;
 					}
 				}
