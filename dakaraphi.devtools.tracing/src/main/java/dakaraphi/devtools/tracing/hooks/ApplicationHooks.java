@@ -1,6 +1,9 @@
-package dakaraphi.devtools.tracing;
+package dakaraphi.devtools.tracing.hooks;
 
 import static dakaraphi.devtools.tracing.common.Common.indexInList;
+
+import dakaraphi.devtools.tracing.StacktraceHasher;
+import dakaraphi.devtools.tracing.TracingAgent;
 import dakaraphi.devtools.tracing.StacktraceHasher.StacktraceHash;
 import dakaraphi.devtools.tracing.common.Recursion;
 import dakaraphi.devtools.tracing.config.Tracer;

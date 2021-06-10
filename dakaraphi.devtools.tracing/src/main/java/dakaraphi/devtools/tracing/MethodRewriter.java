@@ -4,10 +4,12 @@ import java.util.List;
 
 import dakaraphi.devtools.tracing.config.Tracer;
 import dakaraphi.devtools.tracing.config.Tracer.Variable;
+import dakaraphi.devtools.tracing.hooks.ApplicationHooks;
 import dakaraphi.devtools.tracing.logger.TraceLogger;
 import javassist.CannotCompileException;
 import javassist.CtBehavior;
 
+// TODO - the method rewrite is specific to the ApplicationHooks logger.  We should refactor for common features of rewriters such as the new InputStreamHook
 public class MethodRewriter {
 
 	public void editMethod(final CtBehavior editableMethod, final String methodName, final Tracer classMethodDefinition) throws CannotCompileException {

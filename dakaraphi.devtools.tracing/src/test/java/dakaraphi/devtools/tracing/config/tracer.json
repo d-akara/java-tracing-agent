@@ -42,6 +42,17 @@
                     {"name": "variableName", "valueRegex": "testing"}
                 ]
             }
+        },
+        {
+            "enabled": "true",    // optional. default 'true'. 
+            "name": "method3",  // optional. name will be logged in output
+            "classRegex": "dakaraphi.devtools.TestApplication", "methodRegex": "method3", "line": "0",  // specify the location for the log injection
+            "codemod": { // by default will be placed before logging line
+                "expression": "is = dakaraphi.devtools.tracing.hooks.InputStreamHook.asStreamAndContent(is)", "replace": true
+            },
+            "variables":[
+                {"name":"variableName", "expression": "$1"}
+            ]
         }
     ],
     "logConfig": {
